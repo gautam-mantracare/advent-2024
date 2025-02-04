@@ -63,25 +63,44 @@ function hasLoop(mappedArea, startRow, startCol) {
       currentDirection
     );
 
+    // console.clear();
+    // printMap(mappedArea);
+
     // check if next move sends the guard out of the area
     if (isOutsideArea(nextRow, nextCol, mappedArea.length)) return false;
 
     // check if its a loop
-    if (vectorMap.get({ row: currentRow, col: currentCol }) == currentDirection)
+    if (vectorMap.get(`${currentRow},${currentCol}`) == currentDirection)
       return true;
 
     // check if next location is an obstacle... update direction accordingly
     if (mappedArea[nextRow][nextCol] == "#") {
       currentDirection = getNextDirection(currentDirection);
     } else {
+      updateAreaStep(mappedArea, currentRow, currentCol, currentDirection);
+      vectorMap.set(`${currentRow},${currentCol}`, currentDirection);
       currentRow = nextRow;
       currentCol = nextCol;
-      try {
-        vectorMap.set({ row: currentRow, col: currentCol }, currentDirection);
-      } catch {
-        return false;
-      }
     }
+  }
+}
+
+function printMap(mappedArea) {
+  console.log("\t0 1 2 3 4 5 6 7 8 9");
+  console.log(
+    mappedArea.map((x, i) => i.toString() + "\t" + x.join(" ")).join("\n")
+  );
+}
+
+function updateAreaStep(mappedArea, row, col, direction) {
+  const orig = mappedArea[row][col];
+  if (orig == "." || orig == "^") {
+    mappedArea[row][col] = direction == "up" || direction == "down" ? "|" : "-";
+  } else {
+    if (orig == "-" && direction != "left" && direction != "right")
+      mappedArea[row][col] = "+";
+    else if (orig == "|" && direction != "up" && direction != "down")
+      mappedArea[row][col] = "+";
   }
 }
 
@@ -89,7 +108,7 @@ function solvePuzzle(mappedArea, startRow, startCol) {
   let currentDirection = "up";
   let currentRow = startRow;
   let currentCol = startCol;
-  const vectorMap = new Map();
+  const possibleObstacles = new Set();
 
   while (true) {
     const [nextRow, nextCol] = getNextLocation(
@@ -98,6 +117,7 @@ function solvePuzzle(mappedArea, startRow, startCol) {
       currentDirection
     );
 
+    // console.clear();
     // check if next move sends the guard out of the area
     if (isOutsideArea(nextRow, nextCol, mappedArea.length)) break;
 
@@ -105,18 +125,32 @@ function solvePuzzle(mappedArea, startRow, startCol) {
     if (mappedArea[nextRow][nextCol] == "#") {
       currentDirection = getNextDirection(currentDirection);
     } else {
+      // updateAreaStep(mappedArea, currentRow, currentCol);
       currentRow = nextRow;
       currentCol = nextCol;
-      vectorMap.set({ row: currentRow, col: currentCol }, currentDirection);
+      possibleObstacles.add(`${currentRow},${currentCol}`);
     }
   }
 
   let ans = 0;
-  for (const [{ row, col }, direction] of vectorMap.entries()) {
+  for (const position of possibleObstacles.values()) {
+    const [row, col] = position.split(",").map((x) => parseInt(x.trim()));
     const orig = mappedArea[row][col];
     mappedArea[row][col] = "#";
-    if (hasLoop(mappedArea, startRow, startCol)) ans++;
+    try {
+      if (hasLoop(mappedArea, startRow, startCol)) {
+        ans++;
+        // printMap(mappedArea);
+        // console.log(row, col, "\n");
+      }
+    } catch (error) {
+      console.log(error);
+      console.log(row, col);
+      printMap(mappedArea);
+      break;
+    }
     mappedArea[row][col] = orig;
+    // break;
   }
 
   return ans;
@@ -132,7 +166,7 @@ const startRow = Math.floor(startPosition / mappedArea.length) - 1;
 const startCol = mappedArea[startRow].indexOf("^");
 const result = solvePuzzle(mappedArea, startRow, startCol);
 console.log(result);
-console.log("0\t1 2 3 4 5 6 7 8 9");
-console.log(
-  mappedArea.map((x, i) => i.toString() + "\t" + x.join(" ")).join("\n")
-);
+// console.log("\t0 1 2 3 4 5 6 7 8 9");
+// console.log(
+//   mappedArea.map((x, i) => i.toString() + "\t" + x.join(" ")).join("\n")
+// );
