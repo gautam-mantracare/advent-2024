@@ -1,0 +1,1 @@
+cp template day$1
