@@ -34,12 +34,13 @@ function solvePuzzle(mappedArea, startRow, startCol) {
   mappedArea[startRow][startCol] = "X";
 
   while (true) {
-    // check if next move sends the guard out of the area
     const [nextRow, nextCol] = getNextLocation(
       currentRow,
       currentCol,
       currentDirection
     );
+
+    // check if next move sends the guard out of the area
     if (
       nextRow < 0 ||
       nextRow >= mappedArea.length ||
