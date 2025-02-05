@@ -3,9 +3,8 @@ const fs = require("node:fs");
 function solvePuzzle(inputMap) {
   const intMap = inputMap.split("").map((x) => parseInt(x.trim()));
   const diskMap = [];
-  const freqMap = new Map();
   const fileMap = new Map();
-  const notAllowed = new Set();
+  const fileIds = [];
 
   let currentId = 0;
   intMap.forEach((value, idx) => {
@@ -16,40 +15,40 @@ function solvePuzzle(inputMap) {
       // file allocated
       const fileStart = diskMap.length;
       for (let i = 0; i < value; i++) diskMap.push(currentId.toString());
-      if (!freqMap.has(value)) freqMap.set(value, []);
-      freqMap.get(value).push(currentId);
-      fileMap.set(currentId, { start: fileStart, end: fileStart + value - 1 });
+      fileIds.push(currentId);
+      fileMap.set(currentId, {
+        start: fileStart,
+        end: fileStart + value - 1,
+        count: value,
+      });
       currentId++;
     }
   });
 
-  let left = 0;
-
-  console.log(freqMap);
-
-  console.log(diskMap.join(""));
-
-  while (left < diskMap.length) {
-    while (diskMap[left] != ".") {
-      notAllowed.add(diskMap[left]);
+  for (let i = fileIds.length - 1; i >= 0; i--) {
+    const fileId = fileIds[i];
+    const fileInfo = fileMap.get(fileId);
+    let left = 0;
+    while (diskMap[left] != "." && left < diskMap.length) left++;
+    let start = left;
+    let count = 0;
+    while (left < diskMap.length && count < fileInfo.count) {
+      if (diskMap[left] != ".") count = 0;
+      else count++;
+      if (count == 0) start = left + 1;
       left++;
     }
-    let freeBlockStart = left;
-    while (diskMap[left] == ".") left++;
-    const freeLength = left - freeBlockStart;
-    if (freqMap.has(freeLength)) {
-      let nextFile = freqMap.get(freeLength).pop();
-      while (notAllowed.has(nextFile) && nextFile) {
-        nextFile = freqMap.get(freeLength).pop();
-      }
-      if (!nextFile) break;
-      while (freeBlockStart < left)
-        diskMap[freeBlockStart++] = nextFile.toString();
-      const fileInfo = fileMap.get(nextFile);
-      for (let i = fileInfo.start; i <= fileInfo.end; i++) diskMap[i] = ".";
-    }
+
+    if (count != fileInfo.count || start > fileInfo.start) continue;
+    for (let j = start; j < left; j++) diskMap[j] = fileId;
+
+    for (let j = fileInfo.start; j <= fileInfo.end; j++) diskMap[j] = ".";
   }
-  console.log(diskMap.join(""));
+
+  let ans = 0;
+  for (let i = 0; i < diskMap.length; i++)
+    if (diskMap[i] != ".") ans += diskMap[i] * i;
+  return ans;
 }
 
 const filename = process.argv[2];
