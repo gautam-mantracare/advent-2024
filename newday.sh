@@ -14,5 +14,6 @@ fi
 # Create the new folder
 new_folder="day$next_day"
 cp -r template $new_folder
+mv $new_folder/template.js $new_folder/puzzle1.js
 
 echo "Created folder: $new_folder"
