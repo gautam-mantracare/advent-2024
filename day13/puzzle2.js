@@ -20,7 +20,7 @@ function getM(ax, bx, px, n) {
 function solvePuzzle(prizes) {
   let tokensRequired = 0;
   const correction = 10000000000000;
-  prizes.forEach((config, idx) => {
+  prizes.forEach((config) => {
     const [ax, ay] = config.buttonA;
     const [bx, by] = config.buttonB;
     const [px, py] = config.prize;
