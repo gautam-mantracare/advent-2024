@@ -1,6 +1,6 @@
 const fs = require("node:fs");
 
-function findTrail(hikingMap, currentRow, currentCol, last, visited) {
+function findTrail(hikingMap, currentRow, currentCol, last, memo) {
   const [height, width] = [hikingMap.length, hikingMap[0].length];
 
   if (
@@ -10,31 +10,28 @@ function findTrail(hikingMap, currentRow, currentCol, last, visited) {
     currentCol >= width
   )
     return 0;
-
   const current = hikingMap[currentRow][currentCol];
-  const currentPositionVec = [currentRow, currentCol].toString();
-
   if (current != last + 1) return 0;
-  if (current == 9) {
-    if (!visited.has(currentPositionVec)) {
-      visited.add(currentPositionVec);
-      return 1;
-    }
-    return 0;
-  }
+  if (current == 9) return 1;
 
   // console.log(current, currentRow, currentCol);
 
-  return (
-    findTrail(hikingMap, currentRow - 1, currentCol, current, visited) +
-    findTrail(hikingMap, currentRow + 1, currentCol, current, visited) +
-    findTrail(hikingMap, currentRow, currentCol - 1, current, visited) +
-    findTrail(hikingMap, currentRow, currentCol + 1, current, visited)
-  );
+  const currentPositionVec = [currentRow, currentCol].toString();
+  if (!memo.has(currentPositionVec)) {
+    memo.set(
+      currentPositionVec,
+      findTrail(hikingMap, currentRow - 1, currentCol, current, memo) +
+        findTrail(hikingMap, currentRow + 1, currentCol, current, memo) +
+        findTrail(hikingMap, currentRow, currentCol - 1, current, memo) +
+        findTrail(hikingMap, currentRow, currentCol + 1, current, memo)
+    );
+  }
+
+  return memo.get(currentPositionVec);
 }
 
 function getScore(hikingMap, trailHead) {
-  return findTrail(hikingMap, trailHead[0], trailHead[1], -1, new Set());
+  return findTrail(hikingMap, trailHead[0], trailHead[1], -1, new Map());
 }
 
 function solvePuzzle(hikingMap) {
